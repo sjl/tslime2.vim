@@ -1,0 +1,7 @@
+tslime.vim
+
+This is a simple vim script to send portion of text from a vim buffer to a
+running tmux session.
+
+It is based on slime.vim http://technotales.wordpress.com/2007/10/03/like-slime-for-vim/
+It function exactly like slime.vim except that it uses buffer variables instead of global ones.
