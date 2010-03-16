@@ -8,6 +8,10 @@ function! Send_to_Tmux(text)
     end
   end
 
+  if exists("b:tmux_panenumber")
+    call system("tmux select-pane -t " . b:tmux_sessionname . ":" . b:tmux_windowname . "." . b:tmux_panenumber)
+  end
+
   call system("tmux set-buffer -t " . b:tmux_sessionname  . " '" . substitute(a:text, "'", "'\\\\''", 'g') . "'" )
   call system("tmux paste-buffer -t " . b:tmux_sessionname . ":" . b:tmux_windowname)
 endfunction
@@ -20,10 +24,17 @@ function! Tmux_Window_Names(A,L,P)
   return system("tmux list-windows -t" . b:tmux_sessionname . ' | sed -e "s/ \[[0-9x]*\]$//"')
 endfunction
 
+function! Tmux_Pane_Numbers(A,L,P)
+  return system("tmux list-panes -t " . b:tmux_sessionname . ":" . b:tmux_windowname . " | sed -e 's/:.*$//'")
+endfunction
+
 function! Tmux_Vars()
   let b:tmux_sessionname = input("session name: ", "", "custom,Tmux_Session_Names")
-  let b:tmux_windowname = input("window name: ", "", "custom,Tmux_Window_Names")
-  let b:tmux_windowname = substitute(b:tmux_windowname, ":.*$", '', 'g')
+  let b:tmux_windowname = substitute(input("window name: ", "", "custom,Tmux_Window_Names"), ":.*$" , '', 'g')
+
+  if system("tmux list-panes -t " . b:tmux_sessionname . ":" . b:tmux_windowname . " | wc -l") > 1
+    let b:tmux_panenumber = input("pane number: ", "", "custom,Tmux_Pane_Numbers")
+  end
 
   if !exists("g:tmux_sessionname") || !exists("g:tmux_windowname")
     let g:tmux_sessionname = b:tmux_sessionname
