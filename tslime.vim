@@ -1,6 +1,11 @@
 function! Send_to_Tmux(text)
   if !exists("b:tmux_sessionname") || !exists("b:tmux_windowname")
-    call Tmux_Vars()
+    if exists("g:tmux_sessionname") || exists("g:tmux_windowname")
+      let b:tmux_sessionname = g:tmux_sessionname
+      let b:tmux_windowname = g:tmux_windowname
+    else
+      call Tmux_Vars()
+    end
   end
 
   call system("tmux set-buffer -t " . b:tmux_sessionname  . " '" . substitute(a:text, "'", "'\\\\''", 'g') . "'" )
@@ -16,14 +21,14 @@ function! Tmux_Window_Names(A,L,P)
 endfunction
 
 function! Tmux_Vars()
-  if !exists("b:tmux_sessionname") || !exists("b:tmux_windowname")
-    let b:tmux_sessionname = ""
-    let b:tmux_windowname = ""
-  end
-
   let b:tmux_sessionname = input("session name: ", "", "custom,Tmux_Session_Names")
   let b:tmux_windowname = input("window name: ", "", "custom,Tmux_Window_Names")
   let b:tmux_windowname = substitute(b:tmux_windowname, ":.*$", '', 'g')
+
+  if !exists("g:tmux_sessionname") || !exists("g:tmux_windowname")
+    let g:tmux_sessionname = b:tmux_sessionname
+    let g:tmux_windowname = b:tmux_windowname
+  end
 endfunction
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""
