@@ -3,7 +3,11 @@ tslime.vim
 This is a simple vim script to send portion of text from a vim buffer to a
 running tmux session.
 
-It is based on slime.vim http://technotales.wordpress.com/2007/10/03/like-slime-for-vim/
-The only difference is that different vim buffer can send to different tmux session/window.
+It is based on slime.vim http://technotales.wordpress.com/2007/10/03/like-slime-for-vim/,
+but use tmux instead of screen.
 
+However, compared to tmux, screen doesn't have the notion of panes. So, the
+script was adapt to take panes into account.
 
+For now, you need to have tmux build from cvs if you want to paste to a
+specified pane since the current version (1.2) doesn't support it.
