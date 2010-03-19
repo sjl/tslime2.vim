@@ -11,3 +11,7 @@ script was adapt to take panes into account.
 
 For now, you need to have tmux build from cvs if you want to paste to a
 specified pane since the current version (1.2) doesn't support it.
+
+If you can't / don't want to build from source, you can use the stable branch.
+The version available in that branch isn't aware of panes so it will paste to
+pane 0 of the window.
