@@ -26,7 +26,7 @@ function! Tmux_Session_Names(A,L,P)
 endfunction
 
 function! Tmux_Window_Names(A,L,P)
-  return system("tmux list-windows -t" . b:tmux_sessionname . ' | sed -e "s/ \[[0-9x]*\]$//"')
+  return system("tmux list-windows -t" . b:tmux_sessionname . ' | grep -e "^\w:" | sed -e "s/ \[[0-9x]*\]$//"')
 endfunction
 
 function! Tmux_Pane_Numbers(A,L,P)
