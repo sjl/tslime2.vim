@@ -63,9 +63,36 @@ function! s:Tmux_Vars()
   end
 endfunction
 
-""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+function! s:first_readable_file(files) abort
+  let files = type(a:files) == type([]) ? copy(a:files) : split(a:files,"\n")
+  for file in files
+    if filereadable(rails#app().path(file))
+      return file
+    endif
+  endfor
+  return files[0]
+endfunction
 
-vmap <C-c><C-c> "ry :call Send_to_Tmux(@r)<CR>
-nmap <C-c><C-c> vip<C-c><C-c>
+function! s:SendAlternateToTmux() abort
+  let current_file = expand("%")
+  if current_file =~# '_spec.rb$'
+    let command = "rspec ".current_file."\n"
+  elseif exists('g:autoloaded_rails')
+    let related_file = s:first_readable_file(rails#buffer().related())
+    let command = "rspec ".related_file."\n"
+  else
+    let command = "!!\n"
+  endif
+  return Send_to_Tmux(command)
+endfunction
 
-nmap <C-c>v :call <SID>Tmux_Vars()<CR>
+augroup tmux
+  autocmd!
+
+  autocmd FileType ruby map <buffer> <leader>t :w \| :call <SID>SendAlternateToTmux()<CR>
+
+  autocmd FileType cucumber map <buffer> <leader>t
+        \ :w \| :call Send_to_Tmux('cucumber '.expand("%").":".line('.')."\n")<CR>
+
+augroup END
+
