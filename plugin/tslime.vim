@@ -73,17 +73,26 @@ function! s:first_readable_file(files) abort
   return files[0]
 endfunction
 
+function! s:prefix_for_test(file)
+  if a:file =~# '_spec.rb$'
+    return "rspec "
+  elseif a:file =~# '_test.rb$'
+    return "ruby -Itest "
+  endif
+  return ''
+endfunction
+
 function! s:SendAlternateToTmux() abort
   let current_file = expand("%")
-  if current_file =~# '_spec.rb$'
-    let command = "rspec ".current_file."\n"
+  if s:prefix_for_test(current_file) != ''
+    let command = s:prefix_for_test(current_file).current_file
   elseif exists('g:autoloaded_rails')
     let related_file = s:first_readable_file(rails#buffer().related())
-    let command = "rspec ".related_file."\n"
+    let command = s:prefix_for_test(related_file).related_file
   else
-    let command = "!!\n"
+    let command = "!!"
   endif
-  return Send_to_Tmux(command)
+  return Send_to_Tmux(command."\n")
 endfunction
 
 augroup tmux
