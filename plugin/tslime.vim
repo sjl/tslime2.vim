@@ -2,7 +2,7 @@
 " Maintainer: C.Coutinho <kikijump [at] gmail [dot] com>
 " Licence:    DWTFYWTPL
 
-if exists("g:tslime_loaded")
+if exists("g:tslime_loaded") && g:tslime_loaded
   finish
 endif
 
