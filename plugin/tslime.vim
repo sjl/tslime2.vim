@@ -70,7 +70,7 @@ function! s:first_readable_file(files) abort
       return file
     endif
   endfor
-  return files[0]
+  return ''
 endfunction
 
 function! s:prefix_for_test(file)
@@ -85,10 +85,14 @@ endfunction
 function! s:SendAlternateToTmux() abort
   let current_file = expand("%")
   if s:prefix_for_test(current_file) != ''
-    let command = s:prefix_for_test(current_file).current_file
+    let command = s:prefix_for_test(current_file) . current_file
   elseif exists('g:autoloaded_rails')
     let related_file = s:first_readable_file(rails#buffer().related())
-    let command = s:prefix_for_test(related_file).related_file
+    if related_file =~# '.rb$'
+      let command = s:prefix_for_test(related_file) . related_file
+    else
+      let command = "!!"
+    endif
   else
     let command = "!!"
   endif
