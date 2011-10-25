@@ -10,7 +10,7 @@ let g:tslime_loaded = 1
 
 " Main function.
 " Use it in your script if you want to send text to a tmux session.
-function! Send_to_Tmux(text)
+function! SendToTmux(text)
   if !exists("b:tmux_sessionname") || !exists("b:tmux_windowname") || !exists("b:tmux_panenumber")
     if exists("g:tmux_sessionname") && exists("g:tmux_windowname") && exists("g:tmux_panenumber")
       let b:tmux_sessionname = g:tmux_sessionname
@@ -96,7 +96,7 @@ function! s:SendAlternateToTmux() abort
   else
     let command = "!!"
   endif
-  return Send_to_Tmux("".command."\n")
+  return SendToTmux("".command."\n")
 endfunction
 
 augroup tmux
@@ -105,7 +105,7 @@ augroup tmux
   autocmd FileType ruby map <buffer> <leader>t :w \| :call <SID>SendAlternateToTmux()<CR>
 
   autocmd FileType cucumber map <buffer> <leader>t
-        \ :w \| :call Send_to_Tmux('cucumber '.expand("%").":".line('.')."\n")<CR>
+        \ :w \| :call SendToTmux('cucumber '.expand("%").":".line('.')."\n")<CR>
 
 augroup END
 
