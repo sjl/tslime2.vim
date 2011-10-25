@@ -92,7 +92,7 @@ function! s:SendAlternateToTmux() abort
   else
     let command = "!!"
   endif
-  return Send_to_Tmux(command."\n")
+  return Send_to_Tmux("".command."\n")
 endfunction
 
 augroup tmux
