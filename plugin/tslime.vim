@@ -51,17 +51,23 @@ endfunction
 " set tslime.vim variables
 function! s:Tmux_Vars()
   let b:tmux_sessionname = ''
+  let b:tmux_windowname = ''
+  let b:tmux_panenumber = ''
+
   while b:tmux_sessionname == ''
     let b:tmux_sessionname = input("session name: ", "", "custom,Tmux_Session_Names")
   endwhile
-  let b:tmux_windowname = ''
-  while b:tmux_windowname == ''
-    let b:tmux_windowname = substitute(input("window name: ", "", "custom,Tmux_Window_Names"), ":.*$" , '', 'g')
-  endwhile
-  let b:tmux_panenumber = ''
-  while b:tmux_panenumber == ''
-    let b:tmux_panenumber = input("pane number: ", "", "custom,Tmux_Pane_Numbers")
-  endwhile
+  let b:tmux_windowname = substitute(input("window name: ", "", "custom,Tmux_Window_Names"), ":.*$" , '', 'g')
+  let b:tmux_panenumber = input("pane number: ", "", "custom,Tmux_Pane_Numbers")
+
+  if b:tmux_windowname == ''
+    let b:tmux_windowname = '0'
+  endif
+
+  if b:tmux_panenumber == ''
+    let b:tmux_panenumber = '0'
+  endif
+
   if !exists("g:tmux_sessionname") || !exists("g:tmux_windowname") || !exists("g:tmux_panenumber")
     let g:tmux_sessionname = b:tmux_sessionname
     let g:tmux_windowname = b:tmux_windowname
