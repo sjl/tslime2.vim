@@ -2,11 +2,11 @@
 " Maintainer: C.Coutinho <kikijump [at] gmail [dot] com>
 " Licence:    DWTFYWTPL
 
-if exists("g:tslime_loaded") && g:tslime_loaded
+if exists("g:loaded_tslime") && g:loaded_tslime
   finish
 endif
 
-let g:tslime_loaded = 1
+let g:loaded_tslime = 1
 
 " Main function.
 " Use it in your script if you want to send text to a tmux session.
