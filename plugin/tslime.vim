@@ -82,17 +82,13 @@ function! s:prefix_for_test(file)
   return ''
 endfunction
 
-function! s:cucumber_command()
-  return "cucumber " . expand("%") . ":" . line('.')
-endfunction
-
-function! s:SendAlternateToTmux() abort
+function! s:SendAlternateToTmux(suffix) abort
   let current_file = expand("%")
   let executable = ""
   if s:prefix_for_test(current_file) != ''
-    let executable = s:prefix_for_test(current_file) . current_file
+    let executable = s:prefix_for_test(current_file) . current_file . a:suffix
   elseif current_file =~# '.feature$'
-    let executable = s:cucumber_command()
+    let executable = "cucumber " . current_file . a:suffix
   elseif exists('g:autoloaded_rails')
     let related_file = s:first_readable_file(rails#buffer().related())
     if related_file =~# '.rb$'
@@ -105,4 +101,5 @@ function! s:SendAlternateToTmux() abort
   return SendToTmux("".executable."\n")
 endfunction
 
-map <leader>t :w \| :call <SID>SendAlternateToTmux()<CR>
+map <leader>t :w \| :call <SID>SendAlternateToTmux("")<CR>
+map <leader>T :w \| :call <SID>SendAlternateToTmux(":".line('.'))<CR>
