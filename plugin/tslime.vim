@@ -22,9 +22,15 @@ function! SendToTmux(text)
   end
 
   let target = b:tmux_sessionname . ":" . b:tmux_windowname . "." . b:tmux_panenumber
+  let oldbuffer = system("tmux show-buffer")
 
-  call system("tmux set-buffer '" . substitute(a:text, "'", "'\\\\''", 'g') . "'" )
+  call <SID>set_tmux_buffer(a:text)
   call system("tmux paste-buffer -t " . target)
+  call <SID>set_tmux_buffer(oldbuffer)
+endfunction
+
+function! s:set_tmux_buffer(text)
+  call system("tmux set-buffer '" . substitute(a:text, "'", "'\\\\''", 'g') . "'" )
 endfunction
 
 " Session completion
