@@ -82,30 +82,27 @@ function! s:prefix_for_test(file)
   return ''
 endfunction
 
+function! s:cucumber_command()
+  return "cucumber " . expand("%") . ":" . line('.')
+endfunction
+
 function! s:SendAlternateToTmux() abort
   let current_file = expand("%")
+  let executable = ""
   if s:prefix_for_test(current_file) != ''
-    let command = s:prefix_for_test(current_file) . current_file
+    let executable = s:prefix_for_test(current_file) . current_file
+  elseif current_file =~# '.feature$'
+    let executable = s:cucumber_command()
   elseif exists('g:autoloaded_rails')
     let related_file = s:first_readable_file(rails#buffer().related())
     if related_file =~# '.rb$'
-      let command = s:prefix_for_test(related_file) . related_file
-    else
-      let command = "!!"
+      let executable = s:prefix_for_test(related_file) . related_file
     endif
-  else
-    let command = "!!"
   endif
-  return SendToTmux("".command."\n")
+  if executable == ""
+    let executable = "!!"
+  endif
+  return SendToTmux("".executable."\n")
 endfunction
 
-augroup tmux
-  autocmd!
-
-  autocmd FileType ruby map <buffer> <leader>t :w \| :call <SID>SendAlternateToTmux()<CR>
-
-  autocmd FileType cucumber map <buffer> <leader>t
-        \ :w \| :call SendToTmux('cucumber '.expand("%").":".line('.')."\n")<CR>
-
-augroup END
-
+map <leader>t :w \| :call <SID>SendAlternateToTmux()<CR>
