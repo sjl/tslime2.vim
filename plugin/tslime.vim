@@ -113,5 +113,5 @@ function! s:SendAlternateToTmux(suffix) abort
   return SendToTmux("".executable."\n")
 endfunction
 
-map <leader>t :w \| :call <SID>SendAlternateToTmux("")<CR>
-map <leader>T :w \| :call <SID>SendAlternateToTmux(":".line('.'))<CR>
+nnoremap <leader>t :w \| :call <SID>SendAlternateToTmux("")<CR>
+nnoremap <leader>T :w \| :call <SID>SendAlternateToTmux(":".line('.'))<CR>
