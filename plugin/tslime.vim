@@ -68,11 +68,9 @@ function! s:Tmux_Vars()
     let b:tmux_panenumber = '0'
   endif
 
-  if !exists("g:tmux_sessionname") || !exists("g:tmux_windowname") || !exists("g:tmux_panenumber")
-    let g:tmux_sessionname = b:tmux_sessionname
-    let g:tmux_windowname = b:tmux_windowname
-    let g:tmux_panenumber = b:tmux_panenumber
-  end
+  let g:tmux_sessionname = b:tmux_sessionname
+  let g:tmux_windowname = b:tmux_windowname
+  let g:tmux_panenumber = b:tmux_panenumber
 endfunction
 
 function! s:first_readable_file(files) abort
