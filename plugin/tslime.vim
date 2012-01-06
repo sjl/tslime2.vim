@@ -152,5 +152,17 @@ function! SendFocusedTestToTmux(file, line) abort
 endfunction
 
 " Mappings
-nnoremap <leader>t :w \| :call SendTestToTmux(expand("%"))<CR>
-nnoremap <leader>T :w \| :call SendFocusedTestToTmux(expand("%"), line("."))<CR>
+nnoremap <silent> <Plug>SetTmuxVars :<C-U>call <SID>Tmux_Vars()<CR>
+nnoremap <silent> <Plug>SendTestToTmux :<C-U>w \| call SendTestToTmux(expand('%'))<CR>
+nnoremap <silent> <Plug>SendFocusedTestToTmux :<C-U>w \| call SendFocusedTestToTmux(expand('%'), line('.'))<CR>
+
+if !exists("g:no_tmux_test_mappings")
+  nmap <leader>t <Plug>SendTestToTmux
+  nmap <leader>T <Plug>SendFocusedTestToTmux
+endif
+
+if !exists("g:no_tmux_reset_mapping")
+  nmap <leader>y <Plug>SetTmuxVars
+end
+
+" vim:set ft=vim ff=unix ts=4 sw=2 sts=2:
