@@ -163,6 +163,11 @@ endif
 
 if !exists("g:no_tmux_reset_mapping")
   nmap <leader>y <Plug>SetTmuxVars
-end
+endif
+
+if !exists("g:no_tmux_slime_mappings")
+  vmap <C-c><C-c> "ry :call Send_to_Tmux(@r)<CR>
+  nmap <C-c><C-c> vip<C-c><C-c>
+endif
 
 " vim:set ft=vim ff=unix ts=4 sw=2 sts=2:
