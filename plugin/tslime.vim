@@ -10,7 +10,7 @@ let g:loaded_tslime = 1
 
 " Main function.
 " Use it in your script if you want to send text to a tmux session.
-function! SendToTmux(text)
+function! Send_to_Tmux(text)
   if !exists("b:tmux_sessionname") || !exists("b:tmux_windowname") || !exists("b:tmux_panenumber")
     if exists("g:tmux_sessionname") && exists("g:tmux_windowname") && exists("g:tmux_panenumber")
       let b:tmux_sessionname = g:tmux_sessionname
@@ -33,6 +33,10 @@ function! s:set_tmux_buffer(text)
   call system("tmux set-buffer '" . substitute(a:text, "'", "'\\\\''", 'g') . "'" )
 endfunction
 
+function! SendToTmux(text)
+  call Send_to_Tmux(a:text)
+endfunction
+
 " Session completion
 function! Tmux_Session_Names(A,L,P)
   return system("tmux list-sessions | sed -e 's/:.*$//'")
@@ -51,9 +55,6 @@ endfunction
 " set tslime.vim variables
 function! s:Tmux_Vars()
   let b:tmux_sessionname = ''
-  let b:tmux_windowname = ''
-  let b:tmux_panenumber = ''
-
   while b:tmux_sessionname == ''
     let b:tmux_sessionname = input("session name: ", "", "custom,Tmux_Session_Names")
   endwhile
@@ -73,101 +74,9 @@ function! s:Tmux_Vars()
   let g:tmux_panenumber = b:tmux_panenumber
 endfunction
 
-function! s:first_readable_file(files) abort
-  let files = type(a:files) == type([]) ? copy(a:files) : split(a:files,"\n")
-  for file in files
-    if filereadable(rails#app().path(file))
-      return file
-    endif
-  endfor
-  return ''
-endfunction
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-function! s:prefix_for_test(file)
-  if a:file =~# '_spec.rb$'
-    return "rspec "
-  elseif a:file =~# '_test.rb$'
-    return "ruby -Itest "
-  elseif a:file =~# '.feature$'
-    return "cucumber "
-  endif
-  return ''
-endfunction
+vmap <C-c><C-c> "ry :call Send_to_Tmux(@r)<CR>
+nmap <C-c><C-c> vip<C-c><C-c>
 
-function! s:alternate_for_file(file)
-  let related_file = ""
-  if exists('g:autoloaded_rails')
-    let alt = s:first_readable_file(rails#buffer().related())
-    if alt =~# '.rb$'
-      let related_file = alt
-    endif
-  endif
-  return related_file
-endfunction
-
-function! s:command_for_file(file)
-  let executable=""
-  let alternate_file = s:alternate_for_file(a:file)
-  if s:prefix_for_test(a:file) != ''
-    let executable = s:prefix_for_test(a:file) . a:file
-  elseif alternate_file != ''
-    let executable = s:prefix_for_test(alternate_file) . alternate_file
-  endif
-  return executable
-endfunction
-
-function! s:send_test(executable)
-  let executable = a:executable
-  if executable == ''
-    if exists("g:tmux_last_command") && g:tmux_last_command != ''
-      let executable = g:tmux_last_command
-    else
-      let executable = 'echo "Warning: No command has been run yet"'
-    endif
-  endif
-  return SendToTmux("".executable."\n")
-endfunction
-
-function! SendTestToTmux(file) abort
-  let executable = s:command_for_file(a:file)
-  if executable != ''
-    let g:tmux_last_command = executable
-  endif
-  return s:send_test(executable)
-endfunction
-
-function! SendFocusedTestToTmux(file, line) abort
-  let focus = ":".a:line
-
-  if s:prefix_for_test(a:file) != ''
-    let executable = s:command_for_file(a:file).focus
-    let g:tmux_last_focused_command = executable
-  elseif exists("g:tmux_last_focused_command") && g:tmux_last_focused_command != ''
-    let executable = g:tmux_last_focused_command
-  else
-    let executable = ''
-  endif
-
-  return s:send_test(executable)
-endfunction
-
-" Mappings
-nnoremap <silent> <Plug>SetTmuxVars :<C-U>call <SID>Tmux_Vars()<CR>
-nnoremap <silent> <Plug>SendTestToTmux :<C-U>w \| call SendTestToTmux(expand('%'))<CR>
-nnoremap <silent> <Plug>SendFocusedTestToTmux :<C-U>w \| call SendFocusedTestToTmux(expand('%'), line('.'))<CR>
-
-if !exists("g:no_tmux_test_mappings")
-  nmap <leader>t <Plug>SendTestToTmux
-  nmap <leader>T <Plug>SendFocusedTestToTmux
-endif
-
-if !exists("g:no_tmux_reset_mapping")
-  nmap <leader>y <Plug>SetTmuxVars
-endif
-
-if !exists("g:no_tmux_slime_mappings")
-  vmap <C-c><C-c> "ry :call Send_to_Tmux(@r)<CR>
-  nmap <C-c><C-c> vip<C-c><C-c>
-endif
-
-" vim:set ft=vim ff=unix ts=4 sw=2 sts=2:
+nmap <C-c>v :call <SID>Tmux_Vars()<CR>
