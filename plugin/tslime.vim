@@ -76,7 +76,7 @@ endfunction
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-vmap <C-c><C-c> "ry :call Send_to_Tmux(@r)<CR>
-nmap <C-c><C-c> vip<C-c><C-c>
+vnoremap <C-c><C-c> "ry:call Send_to_Tmux(@r)<CR>
+nnoremap <C-c><C-c> vip"ry:call Send_to_Tmux(@r)<CR>
 
-nmap <C-c>v :call <SID>Tmux_Vars()<CR>
+nnoremap <C-c>v :call <SID>Tmux_Vars()<CR>
