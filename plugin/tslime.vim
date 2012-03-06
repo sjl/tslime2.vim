@@ -11,6 +11,15 @@ let g:loaded_tslime = 1
 if !exists("g:tslime_ensure_trailing_newlines")
   let g:tslime_ensure_trailing_newlines = 0
 endif
+if !exists("g:tslime_normal_mapping")
+  let g:tslime_normal_mapping = '<c-c><c-c>'
+endif
+if !exists("g:tslime_visual_mapping")
+  let g:tslime_normal_mapping = '<c-c><c-c>'
+endif
+if !exists("g:tslime_vars_mapping")
+  let g:tslime_normal_mapping = '<c-c>v'
+endif
 
 " Main function.
 " Use it in your script if you want to send text to a tmux session.
@@ -93,7 +102,6 @@ endfunction
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-vnoremap <C-c><C-c> "ry:call Send_to_Tmux(@r)<CR>
-nnoremap <C-c><C-c> vip"ry:call Send_to_Tmux(@r)<CR>
-
-nnoremap <C-c>v :call <SID>Tmux_Vars()<CR>
+execute "vnoremap" . g:tslime_visual_mapping . ' "ry:call Send_to_Tmux(@r)<CR>'
+execute "nnoremap" . g:tslime_normal_mapping . ' vip"ry:call Send_to_Tmux(@r)<CR>'
+execute "nnoremap" . g:tslime_vars_mapping   . ' :call <SID>Tmux_Vars()<CR>'
