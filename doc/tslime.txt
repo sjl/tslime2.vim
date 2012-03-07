@@ -1,0 +1,149 @@
+*tslime.txt*   send text to a running tmux session
+
+          @@@@@@@   @@@@@@   @@@       @@@  @@@@@@@@@@   @@@@@@@@
+          @@@@@@@  @@@@@@@   @@@       @@@  @@@@@@@@@@@  @@@@@@@@
+            @@!    !@@       @@!       @@!  @@! @@! @@!  @@!
+            !@!    !@!       !@!       !@!  !@! !@! !@!  !@!
+            @!!    !!@@!!    @!!       !!@  @!! !!@ @!@  @!!!:!
+            !!!     !!@!!!   !!!       !!!  !@!   ! !@!  !!!!!:
+            !!:         !:!  !!:       !!:  !!:     !!:  !!:
+            :!:        !:!    :!:      :!:  :!:     :!:  :!:
+             ::    :::: ::    :: ::::   ::  :::     ::    :: ::::
+             :     :: : :    : :: : :  :     :      :    : :: ::
+
+tslime lets you send text from Vim to a running tmux session.  It's useful for
+interacting with language REPLs and such.
+
+
+==============================================================================
+CONTENTS                                                      *tslime-contents*
+
+    1. Intro ................................ |tslime_intro|
+    2. Connecting to tmux ................... |tslime_connecting|
+    3. Sending text ......................... |tslime_sending|
+    4. Configuration ........................ |tslime_config|
+        4.1 tslime_ensure_trailing_newlines . |tslime_ensure_trailing_newlines|
+        4.2 tslime_normal_mapping ........... |tslime_normal_mapping|
+        4.3 tslime_visual_mapping ........... |tslime_visual_mapping|
+        4.4 tslime_vars_mapping ............. |tslime_vars_mapping|
+    5. License .............................. |tslime_license|
+    6. Credits .............................. |tslime_credits|
+
+==============================================================================
+1. Intro                                                         *tslime_intro*
+
+tslime lets you send text from Vim into a specific pane of any running tmux
+session.
+
+The first step (after installing tslime) is to connect tslime to a particular
+pane in a particular window of a particular tmux session.
+
+Vim may or may not be running in the same session -- it doesn't matter.
+
+Once you've told tslime which pane to connect to, you use a mapping to pipe
+text from Vim into the session.  tslime doesn't care what's running inside the
+session, it just blindly shoves the text into it.
+
+==============================================================================
+2. Connecting to tmux                                       *tslime_connecting*
+
+If you don't understand how tmux's sessions, windows, and panes work you
+should stop now, take 15 minutes and learn.  tslime is going to be confusing
+if you haven't wrapped your brain around how tmux works.
+
+Before you can do anything with tslime you need to connect it to a tmux pane.
+Press <c-c>v to bring up a prompt and fill in the appropriate session, window,
+and pane.
+
+You can press <tab> to get a list of options at each step.
+
+See |tslime_vars_mapping| if you want to customize the key mapping used to
+bring up this prompt.
+
+==============================================================================
+3. Sending text                                                *tslime_sending*
+
+Now that tslime's connected you can send text from Vim to the tmux pane in one
+of two ways.
+
+The simplest way is to select the text you want to send in visual mode and
+press <c-c><c-c> to send it.
+
+You can also use <c-c><c-c> in normal mode.  This will first select the
+current "paragraph" (like using vip) and then send it along like before.
+
+tslime will send exactly what you select, so if you don't include a newline in
+the visual selection none will be sent.  This may not be what you want if
+you're working with a REPL.  If so, see |tslime_ensure_trailing_newlines| to
+learn how to fix it.
+
+See |tslime_visual_mapping| and |tslime_normal_mapping| if you want to
+customize the key mappings used to send text.
+
+==============================================================================
+4. Configuration                                                *tslime_config*
+
+You can tweak the behavior of tslime by setting a few variables in your vimrc
+file. For example: >
+
+    let g:tslime_normal_mapping = '<leader>t'
+    let g:tslime_visual_mapping = '<leader>t'
+    let g:tslime_vars_mapping = '<leader>T'
+
+------------------------------------------------------------------------------
+4.1 g:tslime_ensure_trailing_newlines         *tslime_ensure_trailing_newlines*
+
+Ensure that all text sent to tmux ends with at least this many newlines.
+
+If you're working with a REPL and don't want to have to worry about selecting
+newlines manually you might want to set this to 1.
+
+If you're working with a Python REPL, which requires two newlines to finish
+indented blocks, you might want to set this to 2.
+
+Default: 0
+
+------------------------------------------------------------------------------
+4.2 g:tslime_normal_mapping                             *tslime_normal_mapping*
+
+Change the key mapping used to send text to tmux in normal mode.
+
+Default: '<c-c><c-c>'
+
+------------------------------------------------------------------------------
+4.3 g:tslime_visual_mapping                             *tslime_visual_mapping*
+
+Change the key mapping used to send text to tmux in visual mode.
+
+Default: '<c-c><c-c>'
+
+------------------------------------------------------------------------------
+4.4 g:tslime_vars_mapping                                 *tslime_vars_mapping*
+
+Change the key mapping used to bring up the tmux variables (a.k.a. connection
+info) prompt.
+
+Default: '<c-c>v'
+
+==============================================================================
+5. License                                                     *tslime_license*
+
+WTFPL: http://sam.zoy.org/wtfpl/
+
+==============================================================================
+6. Credits                                                     *tslime_credits*
+
+In a nutshell:
+
+The original version of tslime as far as I can tell is:
+https://github.com/kikijump/tslime.vim
+
+That repo hasn't been updated in a while, but this one has:
+https://github.com/jgdavey/tslime.vim
+
+I took that repo and added a few things, including this documentation, and the
+result is:
+https://github.com/sjl/tslime.vim
+
+==============================================================================
+
