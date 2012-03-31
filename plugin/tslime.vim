@@ -15,10 +15,10 @@ if !exists("g:tslime_normal_mapping")
   let g:tslime_normal_mapping = '<c-c><c-c>'
 endif
 if !exists("g:tslime_visual_mapping")
-  let g:tslime_normal_mapping = '<c-c><c-c>'
+  let g:tslime_visual_mapping = '<c-c><c-c>'
 endif
 if !exists("g:tslime_vars_mapping")
-  let g:tslime_normal_mapping = '<c-c>v'
+  let g:tslime_vars_mapping = '<c-c>v'
 endif
 
 " Main function.
