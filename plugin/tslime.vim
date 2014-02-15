@@ -35,11 +35,25 @@ function! Send_to_Tmux(text)
   end
 
   let target = b:tmux_sessionname . ":" . b:tmux_windowname . "." . b:tmux_panenumber
-  let oldbuffer = system("tmux show-buffer")
 
-  call <SID>set_tmux_buffer(s:ensure_newlines(a:text))
-  call system("tmux paste-buffer -t " . target)
-  call <SID>set_tmux_buffer(oldbuffer)
+  " Look, I know this is horrifying.  I'm sorry.
+  "
+  " THE PROBLEM: Certain REPLs (e.g.: SBCL) choke if you paste an assload of
+  " text into them all at once (where 'assload' is 'something more than a few
+  " hundred characters but fewer than eight thousand').  They'll seem to get out
+  " of sync with the paste, and your code gets mangled.
+  "
+  " THE SOLUTION: We paste a single line at a time, and sleep for a bit in
+  " between each one.  This gives the REPL time to process things and stay
+  " caught up.  2 milliseconds seems to be enough of a sleep to avoid breaking
+  " things and isn't too painful to sit through.
+  "
+  " This is my life.  This is computering in 2014.
+  for line in split(s:ensure_newlines(a:text), '\n\zs' )
+    call <SID>set_tmux_buffer(line)
+    call system("tmux paste-buffer -dpt " . target)
+    sleep 2m
+  endfor
 endfunction
 
 function! s:ensure_newlines(text)
@@ -56,7 +70,7 @@ function! s:ensure_newlines(text)
 endfunction
 
 function! s:set_tmux_buffer(text)
-  call system("tmux set-buffer '" . substitute(a:text, "'", "'\\\\''", 'g') . "'" )
+  call system("tmux set-buffer '" . substitute(a:text, "'", "'\\\\''", 'g') . "'")
 endfunction
 
 function! SendToTmux(text)
