@@ -49,7 +49,7 @@ function! Send_to_Tmux(text)
   " things and isn't too painful to sit through.
   "
   " This is my life.  This is computering in 2014.
-  for line in split(s:ensure_newlines(a:text), '\n\zs' )
+  for line in split(a:text, '\n\zs' )
     call <SID>set_tmux_buffer(line)
     call system("tmux paste-buffer -dpt " . target)
     sleep 2m
@@ -74,6 +74,10 @@ function! s:set_tmux_buffer(text)
 endfunction
 
 function! SendToTmux(text)
+  call Send_to_Tmux(s:ensure_newlines(a:text))
+endfunction
+
+function! SendToTmuxRaw(text)
   call Send_to_Tmux(a:text)
 endfunction
 
