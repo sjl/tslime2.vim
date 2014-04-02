@@ -1,7 +1,7 @@
-(ns plugin.tslime2)
+(ns plugin.tslime)
 (require '[timl.plugin-helper :as ph])
 
-; (ph/include-guard g:loaded-tslime2)
+; (ph/include-guard g:loaded-tslime)
 
 ; Utils -----------------------------------------------------------------------
 (defmacro define-config [var default]
@@ -34,10 +34,10 @@
          (#*setreg ~r r#)))))
 
 ; Config ----------------------------------------------------------------------
-(define-config g:tslime2-ensure-trailing-newlines 0)
-(define-config g:tslime2-session nil)
-(define-config g:tslime2-window nil)
-(define-config g:tslime2-pane nil)
+(define-config g:tslime-ensure-trailing-newlines 0)
+(define-config g:tslime-session nil)
+(define-config g:tslime-window nil)
+(define-config g:tslime-pane nil)
 
 ; Tab Completion --------------------------------------------------------------
 (defn- complete-sessions [A L P]
@@ -45,40 +45,40 @@
 
 (defn- complete-windows [A L P]
   (sh "tmux list-windows -t"
-      g:tslime2-session
+      g:tslime-session
       " | grep -e \"^\\w:\""
       " | sed -e 's/ \[[0-9x]*\].*$//' -e 's/ ([0-9]* panes)//'"))
 
 (defn- complete-panes [A L P]
   (sh "tmux list-panes -t "
-      g:tslime2-session
+      g:tslime-session
       ":"
-      g:tslime2-window
+      g:tslime-window
       " | sed -e 's/:.*$//'"))
 
 ; Setting Vars ----------------------------------------------------------------
 (defn- prompt [prompt-text completion]
   (let [resp (strip (#*input (str prompt-text "? ")
                              ""
-                             (str "custom,plugin#tslime2#" completion)))]
+                             (str "custom,plugin#tslime#" completion)))]
     (when (not= resp "")
       resp)))
 
 (defn- get-target []
-  (when (and g:tslime2-session
-             g:tslime2-window
-             g:tslime2-pane)
-    (str g:tslime2-session ":"
-         g:tslime2-window "."
-         g:tslime2-pane)))
+  (when (and g:tslime-session
+             g:tslime-window
+             g:tslime-pane)
+    (str g:tslime-session ":"
+         g:tslime-window "."
+         g:tslime-pane)))
 
 (defn- set-target []
   (when-let [session (prompt "session" "complete_sessions")]
-    (set! g:tslime2-session session)
+    (set! g:tslime-session session)
     (when-let [window (prompt "window" "complete_windows")]
-      (set! g:tslime2-window (replace window #"\D*$" ""))
+      (set! g:tslime-window (replace window #"\D*$" ""))
       (when-let [pane (prompt "pane" "complete_panes")]
-        (set! g:tslime2-pane pane)))))
+        (set! g:tslime-pane pane)))))
 
 ; Sending Text ----------------------------------------------------------------
 (defn- send-line-to-tmux [target line]
@@ -100,7 +100,7 @@
   (sleep 2))
 
 (defn- ensure-newlines [text]
-  (let [needed (- (get-config tslime2-ensure-trailing-newlines)
+  (let [needed (- (get-config tslime-ensure-trailing-newlines)
                   (length (#*matchstr text #"\n*$")))]
     (apply str text (take (max 0 needed)
                           (repeat "\n")))))
@@ -112,41 +112,46 @@
                 (split text #"\n\zs")))
     (echo "Not connected to tmux!")))
 
-; Ensure the text has >= tslime2_ensure_trailing_newlines newlines before
+; Ensure the text has >= tslime_ensure_trailing_newlines newlines before
 ; sending.
 (defn send-to-tmux [text]
   (send-to-tmux-raw (ensure-newlines text)))
 
-; Ensure the text has == tslime2_ensure_trailing_newlines newlines before
+; Ensure the text has == tslime_ensure_trailing_newlines newlines before
 ; sending.
 (defn send-to-tmux-trimmed [text]
   (send-to-tmux (replace text #*"\n*$" "")))
 
-(defn send-selection-to-tmux []
+(defn send-selection-with [f]
   (saving-register "r"
     (execute "normal! gv\"ry")
-    (send-to-tmux (#*eval "@r"))))
+    (f (#*eval "@r"))))
 
-(defn connect-to-tmux []
-  (set-target))
+(def send-selection-to-tmux (partial send-selection-with send-to-tmux))
+(def send-selection-to-tmux-trimmed (partial send-selection-with send-to-tmux-trimmed))
+(def send-selection-to-tmux-raw (partial send-selection-with send-to-tmux-raw))
+
+(def connect-to-tmux set-target)
 
 (defn disconnect-from-tmux []
-  (set! g:tslime2-session nil)
-  (set! g:tslime2-window nil)
-  (set! g:tslime2-pane nil))
+  (set! g:tslime-session nil)
+  (set! g:tslime-window nil)
+  (set! g:tslime-pane nil))
 
 (defn proxy [vim tim]
   (execute
     (format
       "function! %s(text)
-           call plugin#tslime2#%s(a:text)
+           call plugin#tslime#%s(a:text)
        endfunction"
       vim
       tim)))
 
-(execute "command! ConnectToTmux call plugin#tslime2#connect_to_tmux()")
-(execute "command! DisconnectFromTmux call plugin#tslime2#disconnect_from_tmux()")
-(execute "command! -range SendSelectionToTmux call plugin#tslime2#send_selection_to_tmux()")
+(execute "command! ConnectToTmux      call plugin#tslime#connect_to_tmux()")
+(execute "command! DisconnectFromTmux call plugin#tslime#disconnect_from_tmux()")
+(execute "command! -range SendSelectionToTmux        call plugin#tslime#send_selection_to_tmux()")
+(execute "command! -range SendSelectionToTmuxTrimmed call plugin#tslime#send_selection_to_tmux_trimmed()")
+(execute "command! -range SendSelectionToTmuxRaw     call plugin#tslime#send_selection_to_tmux_raw()")
 
 (proxy "SendToTmux" "send_to_tmux")
 (proxy "SendToTmuxRaw" "send_to_tmux_raw")

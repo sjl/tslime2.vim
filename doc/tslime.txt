@@ -1,33 +1,42 @@
-*tslime2.txt*   send text to a running tmux session
+*tslime.txt*   send text to a running tmux session
 
-       @@@@@@@   @@@@@@   @@@       @@@  @@@@@@@@@@   @@@@@@@@   @@@@@@
-       @@@@@@@  @@@@@@@   @@@       @@@  @@@@@@@@@@@  @@@@@@@@  @@@@@@@@
-         @@!    !@@       @@!       @@!  @@! @@! @@!  @@!            @@@
-         !@!    !@!       !@!       !@!  !@! !@! !@!  !@!           @!@
-         @!!    !!@@!!    @!!       !!@  @!! !!@ @!@  @!!!:!       !!@
-         !!!     !!@!!!   !!!       !!!  !@!   ! !@!  !!!!!:      !!:
-         !!:         !:!  !!:       !!:  !!:     !!:  !!:        !:!
-         :!:        !:!    :!:      :!:  :!:     :!:  :!:       :!:
-          ::    :::: ::    :: ::::   ::  :::     ::    :: ::::  :: :::::
-          :     :: : :    : :: : :  :     :      :    : :: ::   :: : :::
+      @@@@@@@   @@@@@@   @@@       @@@  @@@@@@@@@@   @@@@@@@@   @@@@@@
+      @@@@@@@  @@@@@@@   @@@       @@@  @@@@@@@@@@@  @@@@@@@@  @@@@@@@@
+        @@!    !@@       @@!       @@!  @@! @@! @@!  @@!            @@@
+        !@!    !@!       !@!       !@!  !@! !@! !@!  !@!           @!@
+        @!!    !!@@!!    @!!       !!@  @!! !!@ @!@  @!!!:!       !!@
+        !!!     !!@!!!   !!!       !!!  !@!   ! !@!  !!!!!:      !!:
+        !!:         !:!  !!:       !!:  !!:     !!:  !!:        !:!
+        :!:        !:!    :!:      :!:  :!:     :!:  :!:       :!:
+         ::    :::: ::    :: ::::   ::  :::     ::    :: ::::  :: :::::
+         :     :: : :    : :: : :  :     :      :    : :: ::   :: : :::
 
-tslime2 lets you send text from Vim to a running tmux session.  It's useful for
+tslime lets you send text from Vim to a running tmux session.  It's useful for
 interacting with language REPLs and such.
 
+tslime2 is a fork of tslime (which itself is a fork of a fork of a...).  It's
+completely rewritten (in TimL) and documented.
 
 ==============================================================================
 CONTENTS                                                      *tslime-contents*
 
-    1. Intro ................................ |tslime_intro|
-    2. Connecting to tmux ................... |tslime_connecting|
-    3. Sending text ......................... |tslime_sending|
-    4. Configuration ........................ |tslime_config|
-        4.1 tslime_ensure_trailing_newlines . |tslime_ensure_trailing_newlines|
-        4.2 tslime_normal_mapping ........... |tslime_normal_mapping|
-        4.3 tslime_visual_mapping ........... |tslime_visual_mapping|
-        4.4 tslime_vars_mapping ............. |tslime_vars_mapping|
-    5. License .............................. |tslime_license|
-    6. Credits .............................. |tslime_credits|
+    1. Intro ............................... |tslime_intro|
+    2. Connecting to tmux .................. |tslime_connecting|
+    3. Sending text ........................ |tslime_sending|
+    4. Configuration ....................... |tslime_config|
+      4.1 tslime_ensure_trailing_newlines .. |tslime_ensure_trailing_newlines|
+    5. Commands ............................ |tslime_commands|
+      5.1 :ConnectToTmux ................... |:ConnectToTmux|
+      5.2 :DisconnectFromTmux .............. |:DisconnectFromTmux|
+      5.3 :SendSelectionToTmux ............. |:SendSelectionToTmux|
+      5.4 :SendSelectionToTmuxTrimmed ...... |:SendSelectionToTmuxTrimmed|
+      5.5 :SendSelectionToTmuxRaw .......... |:SendSelectionToTmuxRaw|
+    6. Functions ........................... |tslime_functions|
+      6.1 SendToTmux ....................... |SendToTmux()|
+      6.2 SendToTmuxTrimmed ................ |SendToTmuxTrimmed()|
+      6.3 SendToTmuxRaw .................... |SendToTmuxRaw()|
+    7. License ............................. |tslime_license|
+    8. Credits ............................. |tslime_credits|
 
 ==============================================================================
 1. Intro                                                         *tslime_intro*
@@ -52,13 +61,11 @@ should stop now, take 15 minutes and learn.  tslime is going to be confusing
 if you haven't wrapped your brain around how tmux works.
 
 Before you can do anything with tslime you need to connect it to a tmux pane.
-Press <c-c>v to bring up a prompt and fill in the appropriate session, window,
-and pane.
+Use the |:ConnectToTmux| command to bring up a prompt and fill in the
+appropriate session, window, and pane.  Tab completion works.
 
-You can press <tab> to get a list of options at each step.
-
-See |tslime_vars_mapping| if you want to customize the key mapping used to
-bring up this prompt.
+If you want to explicitly disconnect from tmux (perhaps to prevent
+accidentally sending text) you can use the :DisconnectFromTmux command.
 
 ==============================================================================
 3. Sending text                                                *tslime_sending*
@@ -67,71 +74,127 @@ Now that tslime's connected you can send text from Vim to the tmux pane in one
 of two ways.
 
 The simplest way is to select the text you want to send in visual mode and
-press <c-c><c-c> to send it.
+use the :SendSelectionToTmux command.  You don't have to worry about removing
+the '<,'> that Vim inserts when you press :, the command will work fine with
+or without it.
 
-You can also use <c-c><c-c> in normal mode.  This will first select the
-current "paragraph" (like using vip) and then send it along like before.
+You can also use one of the Vimscript |tslime_functions| to send more precise
+text.
 
 tslime will send exactly what you select, so if you don't include a newline in
 the visual selection none will be sent.  This may not be what you want if
 you're working with a REPL.  If so, see |tslime_ensure_trailing_newlines| to
 learn how to fix it.
 
-See |tslime_visual_mapping| and |tslime_normal_mapping| if you want to
-customize the key mappings used to send text.
-
 ==============================================================================
 4. Configuration                                                *tslime_config*
 
-You can tweak the behavior of tslime by setting a few variables in your vimrc
-file. For example: >
-
-    let g:tslime_normal_mapping = '<leader>t'
-    let g:tslime_visual_mapping = '<leader>t'
-    let g:tslime_vars_mapping = '<leader>T'
+You can tweak the behavior of tslime by setting variables in your vimrc file.
 
 ------------------------------------------------------------------------------
 4.1 g:tslime_ensure_trailing_newlines         *tslime_ensure_trailing_newlines*
 
-Ensure that all text sent to tmux ends with at least this many newlines.
+Ensure that text sent to tmux ends with at least this many newlines.
 
 If you're working with a REPL and don't want to have to worry about selecting
 newlines manually you might want to set this to 1.
 
-If you're working with a Python REPL, which requires two newlines to finish
-indented blocks, you might want to set this to 2.
+If you're working with a Python REPL (which requires two newlines to finish
+indented blocks) you might want to set this to 2.
+
+You can set this on a per-buffer basis too -- just use b: instead of g:.
 
 Default: 0
 
-------------------------------------------------------------------------------
-4.2 g:tslime_normal_mapping                             *tslime_normal_mapping*
+==============================================================================
+5. Commands                                                   *tslime_commands*
 
-Change the key mapping used to send text to tmux in normal mode.
+tslime provides commands to connect and disconnect to/from tmux, as well as
+a number of commands to send text.
 
-Default: '<c-c><c-c>'
-
-------------------------------------------------------------------------------
-4.3 g:tslime_visual_mapping                             *tslime_visual_mapping*
-
-Change the key mapping used to send text to tmux in visual mode.
-
-Default: '<c-c><c-c>'
+All the text-sending commands deselect the text, but if you want to select it
+again you just use |gv|.
 
 ------------------------------------------------------------------------------
-4.4 g:tslime_vars_mapping                                 *tslime_vars_mapping*
+5.1 ConnectToTmux                                              *:ConnectToTmux*
 
-Change the key mapping used to bring up the tmux variables (a.k.a. connection
-info) prompt.
+This command opens a prompt to connect to tmux.  It will ask you for the
+session, window, and pane you want to connect to.  Tab completion works.
 
-Default: '<c-c>v'
+When you're specifying a window you only need the number, not the name.
+
+------------------------------------------------------------------------------
+5.2 DisconnectFromTmux                                    *:DisconnectFromTmux*
+
+This command will disconnect tslime, so that further attempts to send text
+will fail until you connect again.
+
+You don't have to worry about disconnecting unless you want to make absolutely
+sure you don't accidentally send some text somewhere.
+
+------------------------------------------------------------------------------
+5.3 SendSelectionToTmux                                  *:SendSelectionToTmux*
+
+This command will send the current visual selection to the connected tmux
+pane.
+
+If the current selection ends with fewer newlines than the current
+|tslime_ensure_trailing_newlines| setting tslime will add enough to bring it
+up to that number.
+
+------------------------------------------------------------------------------
+5.4 SendSelectionToTmuxTrimmed                    *:SendSelectionToTmuxTrimmed*
+
+This command is like |:SendSelectionToTmux| except that it will also TRIM
+excess trailing newlines if there are more than
+|tslime_ensure_trailing_newlines| of them.  It ensures that the number of
+newlines will always exactly match the setting.
+
+------------------------------------------------------------------------------
+5.5 SendSelectionToTmuxRaw                            *:SendSelectionToTmuxRaw*
+
+This command sends the current visual selection to tmux without touching the
+trailing newlines at all.
 
 ==============================================================================
-5. License                                                     *tslime_license*
+6. Functions                                                 *tslime_functions*
 
-WTFPL: http://sam.zoy.org/wtfpl/
+If you want to send an arbitrary string to tmux instead of a visual selection,
+you'll need to use one of the functions instead of a command.
+
+------------------------------------------------------------------------------
+6.1 SendToTmux                                                   *SendToTmux()*
+
+This function lets you send an arbitrary string to tmux: >
+
+    call SendToTmux("foo\n")
+
+Newlines are added just like in the |:SendSelectionToTmux| command.
+
+------------------------------------------------------------------------------
+6.2 SendToTmuxTrimmed                                     *SendToTmuxTrimmed()*
+
+This is the same as |SendToTmux()|, but newlines are added as they are in the
+|:SendSelectionToTmuxTrimmed| command.
+
+------------------------------------------------------------------------------
+6.3 SendToTmuxRaw                                             *SendToTmuxRaw()*
+
+This function lets you send an arbitrary string to tmux without touching the
+trailing newlines at all, just like the |:SendSelectionToTmuxRaw| command.
+
+It's great for things like sending  to clear a REPL: >
+
+    " Clear REPL
+    nnoremap <buffer> <localleader>c call SendToTmuxRaw("")
 
 ==============================================================================
-6. Credits                                                     *tslime_credits*
+7. License                                                     *tslime_license*
+
+MIT/X11: http://opensource.org/licenses/MIT
+
+==============================================================================
+8. Credits                                                     *tslime_credits*
 
 In a nutshell:
 
@@ -142,8 +205,11 @@ That repo hasn't been updated in a while, but this one has:
 https://github.com/jgdavey/tslime.vim
 
 I took that repo and added a few things, including this documentation, and the
-result is:
+result was:
 https://github.com/sjl/tslime.vim
+
+Then I completely rewrote everything in TimL and out came:
+https://github.com/sjl/tslime2.vim
 
 ==============================================================================
 
