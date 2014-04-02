@@ -1,0 +1,157 @@
+(ns plugin.tslime2)
+(require '[timl.plugin-helper :as ph])
+
+; (ph/include-guard g:loaded-tslime2)
+
+; Utils -----------------------------------------------------------------------
+(defn- exists [s]
+  (not= 0 (#*exists s)))
+
+(defmacro define-config [var default]
+  `(when-not (exists (str (munge '~var)))
+     (set! ~var ~default)))
+
+(defn- shell-escape-text [text]
+  (replace text "'" "'\\\\''"))
+
+(defn- sh [& args]
+  (#*system (apply str args)))
+
+(defn- strip [s]
+  (-> s
+    (replace #"^\s+" "")
+    (replace #"\s+$" "")))
+
+(defmacro get-config [var]
+  (let [opt (munge var)]
+  `(if (exists (str "b:" ~opt))
+     ~(symbol (str "b:" opt))
+     ~(symbol (str "g:" opt)))))
+
+(defmacro saving-register [r & body]
+  ; hack because TimL can't set register vars
+  `(do
+    (execute (str "let saved_" ~r " = @" ~r))
+    (try
+      (do ~@body)
+      (finally
+        (execute (str "let @" ~r " = saved_" ~r))))))
+
+; Config ----------------------------------------------------------------------
+(define-config g:tslime2-ensure-trailing-newlines 0)
+(define-config g:tslime2-session nil)
+(define-config g:tslime2-window nil)
+(define-config g:tslime2-pane nil)
+
+; Tab Completion --------------------------------------------------------------
+(defn- complete-sessions [A L P]
+  (sh "tmux list-sessions | sed -e 's/:.*$//'"))
+
+(defn- complete-windows [A L P]
+  (sh "tmux list-windows -t"
+      g:tslime2-session
+      " | grep -e \"^\\w:\""
+      " | sed -e 's/ \[[0-9x]*\].*$//' -e 's/ ([0-9]* panes)//'"))
+
+(defn- complete-panes [A L P]
+  (sh "tmux list-panes -t "
+      g:tslime2-session
+      ":"
+      g:tslime2-window
+      " | sed -e 's/:.*$//'"))
+
+; Setting Vars ----------------------------------------------------------------
+(defn- prompt [prompt-text completion]
+  (let [resp (strip (#*input (str prompt-text "? ")
+                             ""
+                             (str "custom,plugin#tslime2#" completion)))]
+    (when (not= resp "")
+      resp)))
+
+(defn- get-target []
+  (when (and g:tslime2-session
+             g:tslime2-window
+             g:tslime2-pane)
+    (str g:tslime2-session ":"
+         g:tslime2-window "."
+         g:tslime2-pane)))
+
+(defn- set-target []
+  (when-let [session (prompt "session" "complete_sessions")]
+    (set! g:tslime2-session session)
+    (when-let [window (prompt "window" "complete_windows")]
+      (set! g:tslime2-window (replace window #"\D*$" ""))
+      (when-let [pane (prompt "pane" "complete_panes")]
+        (set! g:tslime2-pane pane)))))
+
+; Sending Text ----------------------------------------------------------------
+(defn- send-line-to-tmux [target line]
+  ; Look, I know this is horrifying.  I'm sorry.
+  ;
+  ; THE PROBLEM: Certain REPLs (e.g.: SBCL) choke if you paste an assload of
+  ; text into them all at once (where 'assload' is 'something more than a few
+  ; hundred characters but fewer than eight thousand').  They'll seem to get out
+  ; of sync with the paste, and your code gets mangled.
+  ;
+  ; THE SOLUTION: We paste a single line at a time, and sleep for a bit in
+  ; between each one.  This gives the REPL time to process things and stay
+  ; caught up.  2 milliseconds seems to be enough of a sleep to avoid breaking
+  ; things and isn't too painful to sit through.
+  ;
+  ; This is my life.  This is computering in 2014.
+  (sh "tmux set-buffer -- '" (shell-escape-text line) "'")
+  (sh "tmux paste-buffer -dpt " target)
+  (sleep 2))
+
+(defn- ensure-newlines [text]
+  (let [needed (- (get-config tslime2-ensure-trailing-newlines)
+                  (length (#*matchstr text #"\n*$")))]
+    (apply str text (take (max 0 needed)
+                          (repeat "\n")))))
+
+; Send the exact text without fucking around with the newlines at all.
+(defn send-to-tmux-raw [text]
+  (if-let [target (get-target)]
+    (doall (map (partial send-line-to-tmux target)
+                (#*split text #"\n\zs")))
+    (echo "Not connected to tmux!")))
+
+; Ensure the text has >= tslime2_ensure_trailing_newlines newlines before
+; sending.
+(defn send-to-tmux [text]
+  (send-to-tmux-raw (ensure-newlines text)))
+
+; Ensure the text has == tslime2_ensure_trailing_newlines newlines before
+; sending.
+(defn send-to-tmux-trimmed [text]
+  (send-to-tmux (replace text #*"\n*$" "")))
+
+(defn send-selection-to-tmux []
+  (saving-register "r"
+    (execute "normal! gv\"ry")
+    (send-to-tmux (#*eval "@r"))))
+
+(defn connect-to-tmux []
+  (set-target))
+
+(defn disconnect-from-tmux []
+  (set! g:tslime2-session nil)
+  (set! g:tslime2-window nil)
+  (set! g:tslime2-pane nil))
+
+(defn proxy [vim tim]
+  (execute
+    (format
+      "function! %s(text)
+           call plugin#tslime2#%s(a:text)
+       endfunction"
+      vim
+      tim)))
+
+(execute "command! ConnectToTmux call plugin#tslime2#connect_to_tmux()")
+(execute "command! DisconnectFromTmux call plugin#tslime2#disconnect_from_tmux()")
+(execute "command! -range SendSelectionToTmux call plugin#tslime2#send_selection_to_tmux()")
+
+(proxy "SendToTmux" "send_to_tmux")
+(proxy "SendToTmuxRaw" "send_to_tmux_raw")
+(proxy "SendToTmuxTrimmed" "send_to_tmux_trimmed")
