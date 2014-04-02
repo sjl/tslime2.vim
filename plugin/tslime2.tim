@@ -4,11 +4,8 @@
 ; (ph/include-guard g:loaded-tslime2)
 
 ; Utils -----------------------------------------------------------------------
-(defn- exists [s]
-  (not= 0 (#*exists s)))
-
 (defmacro define-config [var default]
-  `(when-not (exists (str (munge '~var)))
+  `(when-not (exists? (str (munge '~var)))
      (set! ~var ~default)))
 
 (defn- shell-escape-text [text]
@@ -24,13 +21,13 @@
 
 (defmacro get-config [var]
   (let [opt (munge var)]
-  `(if (exists (str "b:" ~opt))
+  `(if (exists? (str "b:" ~opt))
      ~(symbol (str "b:" opt))
      ~(symbol (str "g:" opt)))))
 
 (defmacro saving-register [r & body]
   ; hack because TimL can't set register vars
-  `(let [r# (#*eval (str "@" ~r))]
+  `(let [r# (#*getreg ~r)]
      (try
        (do ~@body)
        (finally
@@ -112,7 +109,7 @@
 (defn send-to-tmux-raw [text]
   (if-let [target (get-target)]
     (doall (map (partial send-line-to-tmux target)
-                (#*split text #"\n\zs")))
+                (split text #"\n\zs")))
     (echo "Not connected to tmux!")))
 
 ; Ensure the text has >= tslime2_ensure_trailing_newlines newlines before
