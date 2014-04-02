@@ -30,12 +30,11 @@
 
 (defmacro saving-register [r & body]
   ; hack because TimL can't set register vars
-  `(do
-    (execute (str "let saved_" ~r " = @" ~r))
-    (try
-      (do ~@body)
-      (finally
-        (execute (str "let @" ~r " = saved_" ~r))))))
+  `(let [r# (#*eval (str "@" ~r))]
+     (try
+       (do ~@body)
+       (finally
+         (#*setreg ~r r#)))))
 
 ; Config ----------------------------------------------------------------------
 (define-config g:tslime2-ensure-trailing-newlines 0)
