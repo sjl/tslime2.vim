@@ -120,7 +120,7 @@
 ; Ensure the text has == tslime_ensure_trailing_newlines newlines before
 ; sending.
 (defn send-to-tmux-trimmed [text]
-  (send-to-tmux (replace text #*"\n*$" "")))
+  (send-to-tmux (replace text #"\n*$" "")))
 
 (defn send-selection-with [f]
   (saving-register "r"
