@@ -1,4 +1,4 @@
-(ns plugin.tslime)
+(ns tslime.core)
 (require '[timl.plugin-helper :as ph])
 
 ; (ph/include-guard g:loaded-tslime)
@@ -60,7 +60,7 @@
 (defn- prompt [prompt-text completion]
   (let [resp (strip (#*input (str prompt-text "? ")
                              ""
-                             (str "custom,plugin#tslime#" completion)))]
+                             (str "custom,tslime#" completion)))]
     (when (not= resp "")
       resp)))
 
@@ -137,22 +137,3 @@
   (set! g:tslime-session nil)
   (set! g:tslime-window nil)
   (set! g:tslime-pane nil))
-
-(defn proxy [vim tim]
-  (execute
-    (format
-      "function! %s(text)
-           call plugin#tslime#%s(a:text)
-       endfunction"
-      vim
-      tim)))
-
-(execute "command! ConnectToTmux      call plugin#tslime#connect_to_tmux()")
-(execute "command! DisconnectFromTmux call plugin#tslime#disconnect_from_tmux()")
-(execute "command! -range SendSelectionToTmux        call plugin#tslime#send_selection_to_tmux()")
-(execute "command! -range SendSelectionToTmuxTrimmed call plugin#tslime#send_selection_to_tmux_trimmed()")
-(execute "command! -range SendSelectionToTmuxRaw     call plugin#tslime#send_selection_to_tmux_raw()")
-
-(proxy "SendToTmux" "send_to_tmux")
-(proxy "SendToTmuxRaw" "send_to_tmux_raw")
-(proxy "SendToTmuxTrimmed" "send_to_tmux_trimmed")
