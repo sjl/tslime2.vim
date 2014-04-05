@@ -124,8 +124,8 @@
 
 (defn send-selection-with [f]
   (saving-register "r"
-    (execute "normal! gv\"ry")
-    (f (#*eval "@r"))))
+    (execute "silent normal! gv\"ry")
+    (f (#*getreg "r"))))
 
 (def send-selection-to-tmux (partial send-selection-with send-to-tmux))
 (def send-selection-to-tmux-trimmed (partial send-selection-with send-to-tmux-trimmed))
